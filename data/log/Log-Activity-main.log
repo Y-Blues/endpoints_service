@@ -1,0 +1,12 @@
+2023-11-23 18:11:34,172;INFO;MainThread;proxy.py;proxy;validate;(48);serverProxy validating
+2023-11-23 18:11:34,172;INFO;MainThread;proxy.py;proxy;validate;(50);serverProxy validated
+2023-11-23 18:11:34,232;INFO;MainThread;endpoints.py;endpoints;validate;(235);Endpoint validating
+2023-11-23 18:11:34,238;INFO;MainThread;endpoints.py;endpoints;validate;(244);Endpoint validated
+2023-11-23 18:11:34,238;INFO;MainThread;endpoint_service.py;endpoint_service;validate;(196);HandlerEndpointService validating
+2023-11-23 18:11:34,239;INFO;MainThread;endpoint_service.py;endpoint_service;validate;(198);HandlerEndpointStorage validated
+2023-11-23 18:12:07,974;INFO;MainThread;proxy.py;proxy;validate;(48);serverProxy validating
+2023-11-23 18:12:07,974;INFO;MainThread;proxy.py;proxy;validate;(50);serverProxy validated
+2023-11-23 18:12:08,019;INFO;MainThread;endpoints.py;endpoints;validate;(235);Endpoint validating
+2023-11-23 18:12:08,019;INFO;MainThread;endpoints.py;endpoints;validate;(244);Endpoint validated
+2023-11-23 18:12:08,019;INFO;MainThread;endpoint_service.py;endpoint_service;validate;(196);HandlerEndpointService validating
+2023-11-23 18:12:08,019;INFO;MainThread;endpoint_service.py;endpoint_service;validate;(198);HandlerEndpointStorage validated
