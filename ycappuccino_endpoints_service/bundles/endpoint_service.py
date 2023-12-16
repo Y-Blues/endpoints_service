@@ -1,22 +1,23 @@
-#app="all"
+"""
+    handler endpoint that manage call of service
+"""
+
+
 import ycappuccino_core
-from ycappuccino_core.api import  IActivityLogger
-from ycappuccino_endpoints.api import IHandlerEndpoint
+from ycappuccino_api.core.api import  IActivityLogger
 from ycappuccino_core.decorator_app import Layer
 
-import uuid
-import os
 import logging
 from ycappuccino_endpoints.beans import UrlPath, EndpointResponse
 from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, Invalidate, Provides, BindField, UnbindField, Instantiate
 
-from ycappuccino_core.api import IService
-from ycappuccino_endpoints.api import IEndpoint
+from ycappuccino_api.core.api import IService
+from ycappuccino_api.endpoints.api import IEndpoint
 
 _logger = logging.getLogger(__name__)
 
-from ycappuccino_endpoints.bundles.utils_header import check_header, get_token_decoded, get_token_from_header
-from ycappuccino_endpoints.api import IRightManager,  IHandlerEndpoint
+from ycappuccino_endpoints.bundles.utils_header import check_header, get_token_from_header
+from ycappuccino_api.endpoints.api import IRightManager,  IHandlerEndpoint
 
 @ComponentFactory('EndpointService-Factory')
 @Provides(specifications=[IHandlerEndpoint.name])
