@@ -5,6 +5,7 @@
 
 import ycappuccino_core
 from ycappuccino_api.core.api import  IActivityLogger
+from ycappuccino_api.proxy.api import YCappuccinoRemote
 from ycappuccino_core.decorator_app import Layer
 
 import logging
@@ -20,13 +21,13 @@ from ycappuccino_endpoints.bundles.utils_header import check_header, get_token_f
 from ycappuccino_api.endpoints.api import IRightManager,  IHandlerEndpoint
 
 @ComponentFactory('EndpointService-Factory')
-@Provides(specifications=[IHandlerEndpoint.name])
-@Requires("_log",IActivityLogger.name, spec_filter="'(name=main)'")
+@Provides(specifications=[YCappuccinoRemote.__name__, IHandlerEndpoint.__name__])
+@Requires("_log",IActivityLogger.__name__, spec_filter="'(name=main)'")
 @Instantiate("handlerEndpointService")
-@Requires("_handler_swagger", specification=IHandlerEndpoint.name, spec_filter="'(name=swagger)'")
-@Requires("_services", specification=IService.name, aggregate=True, optional=True)
-@Requires("_endpoint", specification=IEndpoint.name)
-@Requires("_right_access", specification=IRightManager.name, optional=True)
+@Requires("_handler_swagger", specification=IHandlerEndpoint.__name__, spec_filter="'(name=swagger)'")
+@Requires("_services", specification=IService.__name__, aggregate=True, optional=True)
+@Requires("_endpoint", specification=IEndpoint.__name__)
+@Requires("_right_access", specification=IRightManager.__name__, optional=True)
 @Layer(name="ycappuccino_endpoints_service")
 class HandlerEndpointService(IHandlerEndpoint):
 
