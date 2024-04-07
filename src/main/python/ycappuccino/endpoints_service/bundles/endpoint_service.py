@@ -4,11 +4,11 @@
 
 import ycappuccino_core
 from ycappuccino_api.core.api import IActivityLogger
-from src.main.python.proxy import YCappuccinoRemote
-from src.main.python.decorator_app import Layer
+from src.main.python import YCappuccinoRemote
+from src.main.python import Layer
 
 import logging
-from src.main.python.beans import UrlPath, EndpointResponse
+from src.main.python import UrlPath, EndpointResponse
 from pelix.ipopo.decorators import (
     ComponentFactory,
     Requires,
@@ -25,7 +25,7 @@ from ycappuccino_api.endpoints.api import IEndpoint
 
 _logger = logging.getLogger(__name__)
 
-from src.main.python.bundles import (
+from src.main.python import (
     check_header,
     get_token_from_header,
 )
