@@ -2,29 +2,45 @@
     handler endpoint that manage call of service
 """
 
-
 import ycappuccino_core
-from ycappuccino_api.core.api import  IActivityLogger
-from ycappuccino_api.proxy.api import YCappuccinoRemote
-from ycappuccino_core.decorator_app import Layer
+from ycappuccino_api.core.api import IActivityLogger
+from src.main.python.proxy import YCappuccinoRemote
+from src.main.python.decorator_app import Layer
 
 import logging
-from ycappuccino_endpoints.beans import UrlPath, EndpointResponse
-from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, Invalidate, Provides, BindField, UnbindField, Instantiate
+from src.main.python.beans import UrlPath, EndpointResponse
+from pelix.ipopo.decorators import (
+    ComponentFactory,
+    Requires,
+    Validate,
+    Invalidate,
+    Provides,
+    BindField,
+    UnbindField,
+    Instantiate,
+)
 
 from ycappuccino_api.core.api import IService
 from ycappuccino_api.endpoints.api import IEndpoint
 
 _logger = logging.getLogger(__name__)
 
-from ycappuccino_endpoints.bundles.utils_header import check_header, get_token_from_header
-from ycappuccino_api.endpoints.api import IRightManager,  IHandlerEndpoint
+from src.main.python.bundles import (
+    check_header,
+    get_token_from_header,
+)
+from ycappuccino_api.endpoints.api import IRightManager, IHandlerEndpoint
 
-@ComponentFactory('EndpointService-Factory')
+
+@ComponentFactory("EndpointService-Factory")
 @Provides(specifications=[YCappuccinoRemote.__name__, IHandlerEndpoint.__name__])
-@Requires("_log",IActivityLogger.__name__, spec_filter="'(name=main)'")
+@Requires("_log", IActivityLogger.__name__, spec_filter="'(name=main)'")
 @Instantiate("handlerEndpointService")
-@Requires("_handler_swagger", specification=IHandlerEndpoint.__name__, spec_filter="'(name=swagger)'")
+@Requires(
+    "_handler_swagger",
+    specification=IHandlerEndpoint.__name__,
+    spec_filter="'(name=swagger)'",
+)
 @Requires("_services", specification=IService.__name__, aggregate=True, optional=True)
 @Requires("_endpoint", specification=IEndpoint.__name__)
 @Requires("_right_access", specification=IRightManager.__name__, optional=True)
@@ -32,7 +48,7 @@ from ycappuccino_api.endpoints.api import IRightManager,  IHandlerEndpoint
 class HandlerEndpointService(IHandlerEndpoint):
 
     def __init__(self):
-        super(IHandlerEndpoint, self).__init__();
+        super(IHandlerEndpoint, self).__init__()
         self._log = None
         self._endpoint = None
         self._services = None
@@ -41,18 +57,18 @@ class HandlerEndpointService(IHandlerEndpoint):
         self._right_access = None
         self._handler_swagger = None
 
-
     def find_service(self, a_item_id):
         if a_item_id in self._map_services:
-             return self._map_services[a_item_id]
+            return self._map_services[a_item_id]
         return None
 
     def get_types(self):
         return ["service"]
 
-
-    def post(self,a_path, a_headers, a_body):
-        w_url_path = UrlPath("post",a_path, self._handler_swagger.get(a_path, a_headers))
+    def post(self, a_path, a_headers, a_body):
+        w_url_path = UrlPath(
+            "post", a_path, self._handler_swagger.get(a_path, a_headers)
+        )
         w_service_name = w_url_path.get_service_name()
         w_service = self.find_service(w_service_name)
         if w_service.is_secure():
@@ -68,23 +84,21 @@ class HandlerEndpointService(IHandlerEndpoint):
                 return EndpointResponse(403)
 
             w_header, w_body = w_service.post(a_headers, w_url_path, a_body)
-            w_meta = {
-                "type": "array"
-            }
+            w_meta = {"type": "array"}
 
             return EndpointResponse(200, w_header, w_meta, w_body)
         else:
             w_header, w_body = w_service.post(a_headers, w_url_path, a_body)
-            w_meta = {
-                "type": "array"
-            }
+            w_meta = {"type": "array"}
             if w_body is None:
                 return EndpointResponse(401)
             else:
                 return EndpointResponse(200, w_header, w_meta, w_body)
 
     def put(self, a_path, a_headers, a_body):
-        w_url_path = UrlPath("put",a_path, self._handler_swagger.get(a_path, a_headers))
+        w_url_path = UrlPath(
+            "put", a_path, self._handler_swagger.get(a_path, a_headers)
+        )
         w_service_name = w_url_path.get_service_name()
         w_service = self.find_services(w_service_name)
         if w_service is not None:
@@ -102,16 +116,12 @@ class HandlerEndpointService(IHandlerEndpoint):
                     return EndpointResponse(403)
 
                 w_header, w_body = w_service.put(a_headers, w_url_path, a_body)
-                w_meta = {
-                    "type": "array"
-                }
+                w_meta = {"type": "array"}
                 return EndpointResponse(200, w_header, w_meta, w_body)
 
             else:
                 w_header, w_body = w_service.put(a_headers, w_url_path, a_body)
-                w_meta = {
-                    "type": "array"
-                }
+                w_meta = {"type": "array"}
                 return EndpointResponse(200, w_header, w_meta, w_body)
         return EndpointResponse(501)
 
@@ -120,17 +130,31 @@ class HandlerEndpointService(IHandlerEndpoint):
         self._handler_swagger.get_swagger_description_item(a_swagger["paths"])
         for w_item in ycappuccino_core.models.decorators.get_map_items():
             if not w_item["abstract"]:
-                self._handler_swagger.get_swagger_description(w_item, a_swagger["paths"])
-                a_tag.append({"name":  self._handler_swagger.get_swagger_description_tag(w_item)})
+                self._handler_swagger.get_swagger_description(
+                    w_item, a_swagger["paths"]
+                )
+                a_tag.append(
+                    {"name": self._handler_swagger.get_swagger_description_tag(w_item)}
+                )
 
         for w_service in self._map_services.values():
-            self._handler_swagger.get_swagger_description_service(w_service, a_swagger["paths"])
-            a_tag.append({"name": self._handler_swagger.get_swagger_description_service_tag(w_service)})
+            self._handler_swagger.get_swagger_description_service(
+                w_service, a_swagger["paths"]
+            )
+            a_tag.append(
+                {
+                    "name": self._handler_swagger.get_swagger_description_service_tag(
+                        w_service
+                    )
+                }
+            )
 
         return EndpointResponse(200, None, None, a_swagger)
 
     def get(self, a_path, a_headers):
-        w_url_path = UrlPath("get",a_path, self._handler_swagger.get(a_path, a_headers))
+        w_url_path = UrlPath(
+            "get", a_path, self._handler_swagger.get(a_path, a_headers)
+        )
         w_service_name = w_url_path.get_service_name()
         w_service = self.find_services(w_service_name)
         if w_service is not None:
@@ -147,23 +171,21 @@ class HandlerEndpointService(IHandlerEndpoint):
                     return EndpointResponse(403)
 
                 w_header, w_body = w_service.get(a_headers, w_url_path)
-                w_meta = {
-                    "type": "array"
-                }
+                w_meta = {"type": "array"}
                 if w_body is None:
                     return EndpointResponse(401)
                 else:
                     return EndpointResponse(200, w_header, w_meta, w_body)
             else:
                 w_header, w_body = w_service.get(a_headers, w_url_path)
-                w_meta = {
-                    "type": "array"
-                }
+                w_meta = {"type": "array"}
                 return EndpointResponse(200, w_header, w_meta, w_body)
         return EndpointResponse(501)
 
     def delete(self, a_path, a_headers):
-        w_url_path = UrlPath("delete",a_path, self._handler_swagger.get(a_path, a_headers))
+        w_url_path = UrlPath(
+            "delete", a_path, self._handler_swagger.get(a_path, a_headers)
+        )
         w_service_name = w_url_path.get_service_name()
         w_service = self.find_services(w_service_name)
         if w_service is not None:
@@ -180,11 +202,8 @@ class HandlerEndpointService(IHandlerEndpoint):
                     return EndpointResponse(403)
             else:
                 w_header, w_body = w_service.delete(a_headers, w_url_path)
-                w_meta = {
-                    "type": "array"
-                }
+                w_meta = {"type": "array"}
                 return EndpointResponse(200, w_header, w_meta, w_body)
-
 
     @BindField("_services")
     def bind_services(self, field, a_service, a_service_reference):
@@ -195,7 +214,6 @@ class HandlerEndpointService(IHandlerEndpoint):
     def unbind_services(self, field, a_service, a_service_reference):
         w_service = a_service.get_name()
         self._map_services[w_service] = None
-
 
     @Validate
     def validate(self, context):
