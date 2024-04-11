@@ -2,13 +2,12 @@
     handler endpoint that manage call of service
 """
 
-import ycappuccino_core
-from ycappuccino_api.core.api import IActivityLogger
-from src.main.python.proxy import YCappuccinoRemote
-from src.main.python.decorator_app import Layer
+from ycappuccino.api.core.api import IActivityLogger
+from ycappuccino.api.proxy.api import YCappuccinoRemote
+from ycappuccino.core.decorator_app import Layer
 
 import logging
-from src.main.python.beans import UrlPath, EndpointResponse
+from ycappuccino.endpoints.beans import UrlPath, EndpointResponse
 from pelix.ipopo.decorators import (
     ComponentFactory,
     Requires,
@@ -20,16 +19,16 @@ from pelix.ipopo.decorators import (
     Instantiate,
 )
 
-from ycappuccino_api.core.api import IService
-from ycappuccino_api.endpoints.api import IEndpoint
+from ycappuccino.api.core.api import IService
+from ycappuccino.api.endpoints.api import IEndpoint
 
 _logger = logging.getLogger(__name__)
 
-from src.main.python.bundles import (
+from ycappuccino.endpoints.bundles.utils_header import (
     check_header,
     get_token_from_header,
 )
-from ycappuccino_api.endpoints.api import IRightManager, IHandlerEndpoint
+from ycappuccino.api.endpoints.api import IRightManager, IHandlerEndpoint
 
 
 @ComponentFactory("EndpointService-Factory")
