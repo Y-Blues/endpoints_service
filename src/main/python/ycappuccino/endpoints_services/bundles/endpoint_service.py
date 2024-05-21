@@ -2,13 +2,12 @@
     handler endpoint that manage call of service
 """
 
-import ycappuccino_core
-from ycappuccino_api.core.api import IActivityLogger
-from src.main.python import YCappuccinoRemote
-from src.main.python import Layer
+from ycappuccino.api.core import IActivityLogger
+from ycappuccino.api.proxy import YCappuccinoRemote
+from ycappuccino.core.decorator_app import Layer
 
 import logging
-from src.main.python import UrlPath, EndpointResponse
+from ycappuccino.api.endpoints import UrlPath, EndpointResponse
 from pelix.ipopo.decorators import (
     ComponentFactory,
     Requires,
@@ -20,16 +19,18 @@ from pelix.ipopo.decorators import (
     Instantiate,
 )
 
-from ycappuccino_api.core.api import IService
-from ycappuccino_api.endpoints.api import IEndpoint
+from ycappuccino.api.core import IService
+from ycappuccino.api.endpoints import IEndpoint
+from ycappuccino.core.models.decorators import get_map_items
 
 _logger = logging.getLogger(__name__)
 
-from src.main.python import (
+
+from ycappuccino.api.endpoints import (
     check_header,
     get_token_from_header,
 )
-from ycappuccino_api.endpoints.api import IRightManager, IHandlerEndpoint
+from ycappuccino.api.endpoints import IRightManager, IHandlerEndpoint
 
 
 @ComponentFactory("EndpointService-Factory")
@@ -128,7 +129,7 @@ class HandlerEndpointService(IHandlerEndpoint):
     def get_swagger_descriptions(self, a_tag, a_swagger, a_scheme):
 
         self._handler_swagger.get_swagger_description_item(a_swagger["paths"])
-        for w_item in ycappuccino_core.models.decorators.get_map_items():
+        for w_item in get_map_items():
             if not w_item["abstract"]:
                 self._handler_swagger.get_swagger_description(
                     w_item, a_swagger["paths"]
