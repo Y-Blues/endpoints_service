@@ -3,6 +3,7 @@
 """
 
 from ycappuccino.api.core import IActivityLogger
+from ycappuccino.api.decorators import get_map_items
 from ycappuccino.api.proxy import YCappuccinoRemote
 from ycappuccino.core.decorator_app import Layer
 
@@ -21,7 +22,6 @@ from pelix.ipopo.decorators import (
 
 from ycappuccino.api.core import IService
 from ycappuccino.api.endpoints import IEndpoint
-from ycappuccino.core.models.decorators import get_map_items
 
 _logger = logging.getLogger(__name__)
 
