@@ -1,9 +1,9 @@
 import unittest
 
-from service_fixtures import ALICE, FakeAuthorization, FakeExposedService
+from service_fixtures import ALICE, FakeAuthorization, FakeExposedService, TypedFakeService
 
 from ycappuccino.api.endpoints_service import CALL
-from ycappuccino.api.endpoints_storage import Forbidden, NotAuthenticated, NotFound
+from ycappuccino.api.endpoints_storage import Forbidden, InvalidRequest, NotAuthenticated, NotFound
 from ycappuccino.endpoints_service.endpoint import ServiceEndpoint
 
 
@@ -63,6 +63,62 @@ class TestServiceEndpoint(unittest.IsolatedAsyncioTestCase):
         await endpoint.call("secret", "POST", [], {}, {}, ALICE)
 
         self.assertEqual(len(secret.calls), 1)
+
+
+class TestServiceEndpointTypedDispatch(unittest.IsolatedAsyncioTestCase):
+
+    async def test_routes_to_the_matching_rpc_method(self):
+        endpoint = ServiceEndpoint([TypedFakeService()], [])
+
+        result = await endpoint.call("typed", "POST", ["abc", "execute"], {}, {"count": 3}, None)
+
+        self.assertEqual(result.body, {"item_id": "abc", "count": 3})
+
+    async def test_optional_parameters_keep_their_default(self):
+        endpoint = ServiceEndpoint([TypedFakeService()], [])
+
+        result = await endpoint.call("typed", "POST", ["abc", "execute"], {}, None, None)
+
+        self.assertEqual(result.body, {"item_id": "abc", "count": 1})
+
+    async def test_unmatched_method_or_path_is_not_found(self):
+        endpoint = ServiceEndpoint([TypedFakeService()], [])
+
+        for method, extra_path in (("GET", ["abc", "execute"]), ("POST", ["abc"]), ("POST", ["a", "b", "execute"])):
+            with self.subTest(method=method, extra_path=extra_path):
+                with self.assertRaises(NotFound):
+                    await endpoint.call("typed", method, extra_path, {}, {}, None)
+
+    async def test_a_result_that_is_already_a_service_result_is_used_as_is(self):
+        endpoint = ServiceEndpoint([TypedFakeService()], [])
+
+        result = await endpoint.call("typed", "POST", ["cookie"], {}, {}, None)
+
+        self.assertEqual((result.body, result.headers), ({"ok": True}, {"set-cookie": "a=b"}))
+
+    async def test_the_request_subject_is_passed_and_a_body_subject_ignored(self):
+        typed = TypedFakeService()
+        endpoint = ServiceEndpoint([typed], [])
+
+        result = await endpoint.call("typed", "GET", [], {}, {"subject": {"sub": "mallory"}}, ALICE)
+
+        self.assertEqual(result.body, {"subject": ALICE})
+
+    async def test_unexpected_or_missing_arguments_are_invalid(self):
+        endpoint = ServiceEndpoint([TypedFakeService()], [])
+
+        for body in ({"count": 1, "unknown": 2}, ["not", "an", "object"]):
+            with self.subTest(body=body):
+                with self.assertRaises(InvalidRequest):
+                    await endpoint.call("typed", "POST", ["abc", "execute"], {}, body, None)
+
+    async def test_a_service_overriding_call_keeps_it_as_its_handler(self):
+        echo = FakeExposedService("echo", secure=False)
+        endpoint = ServiceEndpoint([echo], [])
+
+        await endpoint.call("echo", "DELETE", ["any", "path"], {}, None, None)
+
+        self.assertEqual(echo.calls, [("DELETE", ["any", "path"], {}, None, None)])
 
 
 if __name__ == "__main__":

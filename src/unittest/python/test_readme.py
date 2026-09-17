@@ -4,12 +4,36 @@ The examples of README.md, kept runnable.
 
 import unittest
 
+from ycappuccino.api.decorators import rpc_method
 from ycappuccino.api.endpoints_service import IExposedService, IServiceEndpoint, ServiceResult
 from ycappuccino.api.core_base import YCappuccinoComponent
 from ycappuccino.endpoints_service.endpoint import ServiceEndpoint
 
 
 # section "Déclarer un service"
+class Greeting(IExposedService):
+    name = "greeting"
+    secure = False
+
+    def __init__(self):
+        pass
+
+    async def start(self):
+        pass
+
+    async def stop(self):
+        pass
+
+    @rpc_method(method="POST", path="/{language}", summary="greet someone")
+    async def greet(self, language: str, who: str) -> dict:
+        return {"text": ("Bonjour " if language == "fr" else "Hello ") + who}
+
+    @rpc_method(method="GET", path="/me")
+    async def me(self, subject: dict | None) -> str:
+        return subject["sub"] if subject else "anonymous"
+
+
+# section "Gérer toutes les requêtes soi-même"
 class Echo(IExposedService):
     name = "echo"
     secure = False
@@ -40,6 +64,14 @@ class Caller(YCappuccinoComponent):
 
 
 class TestReadmeExamples(unittest.IsolatedAsyncioTestCase):
+
+    async def test_declaring_section(self):
+        endpoint = ServiceEndpoint([Greeting()], [])
+
+        greeted = await endpoint.call("greeting", "POST", ["fr"], {}, {"who": "Alice"}, None)
+        me = await endpoint.call("greeting", "GET", ["me"], {}, None, {"sub": "alice"})
+
+        self.assertEqual((greeted.body, me.body), ({"text": "Bonjour Alice"}, "alice"))
 
     async def test_calling_section(self):
         endpoint = ServiceEndpoint([Echo()], [])

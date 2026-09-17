@@ -2,6 +2,7 @@
 Fakes shared by the endpoints_service tests.
 """
 
+from ycappuccino.api.decorators import rpc_method
 from ycappuccino.api.endpoints_service import IExposedService, ServiceResult
 from ycappuccino.api.endpoints_storage import IAuthorization
 
@@ -46,3 +47,32 @@ class FakeAuthorization(IAuthorization):
 
     async def stop(self):
         pass
+
+
+class TypedFakeService(IExposedService):
+    """answers through @rpc_method methods instead of a generic call()"""
+
+    name = "typed"
+    secure = False
+
+    def __init__(self):
+        self.subjects = []
+
+    async def start(self):
+        pass
+
+    async def stop(self):
+        pass
+
+    @rpc_method(method="POST", path="/{item_id}/execute", summary="run")
+    async def execute(self, item_id: str, count: int = 1) -> dict:
+        return {"item_id": item_id, "count": count}
+
+    @rpc_method(method="GET")
+    async def whoami(self, subject: dict | None) -> dict:
+        self.subjects.append(subject)
+        return {"subject": subject}
+
+    @rpc_method(method="POST", path="/cookie")
+    async def cookie(self) -> ServiceResult:
+        return ServiceResult(body={"ok": True}, headers={"set-cookie": "a=b"})
