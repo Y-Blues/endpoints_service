@@ -39,11 +39,7 @@ class ServiceEndpoint(IServiceEndpoint):
     ) -> ServiceResult:
         service = self._find(name)
         await self._check(service, subject)
-        if handles_its_calls(service):
-            return await service.call(method, extra_path, params, body, subject)
-        target, path_params = _match(service, method, extra_path)
-        result = await target(**_arguments(target, path_params, body, subject))
-        return result if isinstance(result, ServiceResult) else ServiceResult(body=_jsonable(result))
+        return await call_service(service, method, extra_path, params, body, subject)
 
     def _find(self, name: str) -> IExposedService:
         for service in list(self._services):
@@ -62,6 +58,18 @@ class ServiceEndpoint(IServiceEndpoint):
             raise Forbidden(f"call {service.name} is not authorized")
         if not await authorizations[0].is_authorized(subject, CALL, service.name):
             raise Forbidden(f"call {service.name} is not authorized")
+
+
+async def call_service(
+    service: IExposedService, method: str, extra_path: list, params: dict, body: Any, subject: dict | None
+) -> ServiceResult:
+    """runs a request on a service already found and authorized: its call() if it overrides it, otherwise
+    the matching @rpc_method"""
+    if handles_its_calls(service):
+        return await service.call(method, extra_path, params, body, subject)
+    target, path_params = _match(service, method, extra_path)
+    result = await target(**_arguments(target, path_params, body, subject))
+    return result if isinstance(result, ServiceResult) else ServiceResult(body=_jsonable(result))
 
 
 def handles_its_calls(service: IExposedService) -> bool:

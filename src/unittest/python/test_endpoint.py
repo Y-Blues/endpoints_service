@@ -4,7 +4,7 @@ from service_fixtures import ALICE, FakeAuthorization, FakeExposedService, Typed
 
 from ycappuccino.api.endpoints_service import CALL
 from ycappuccino.api.endpoints_storage import Forbidden, InvalidRequest, NotAuthenticated, NotFound
-from ycappuccino.endpoints_service.endpoint import ServiceEndpoint
+from ycappuccino.endpoints_service.endpoint import ServiceEndpoint, call_service
 
 
 class TestServiceEndpoint(unittest.IsolatedAsyncioTestCase):
@@ -119,6 +119,26 @@ class TestServiceEndpointTypedDispatch(unittest.IsolatedAsyncioTestCase):
         await endpoint.call("echo", "DELETE", ["any", "path"], {}, None, None)
 
         self.assertEqual(echo.calls, [("DELETE", ["any", "path"], {}, None, None)])
+
+
+
+class TestCallService(unittest.IsolatedAsyncioTestCase):
+    """the routing alone, without lookup nor authorization, for another IServiceEndpoint (remote)"""
+
+    async def test_routes_without_checking_the_secure_flag(self):
+        typed = TypedFakeService()
+        typed.secure = True
+
+        result = await call_service(typed, "POST", ["abc", "execute"], {}, {"count": 2}, None)
+
+        self.assertEqual(result.body, {"item_id": "abc", "count": 2})
+
+    async def test_a_service_overriding_call_gets_the_request(self):
+        echo = FakeExposedService("echo", secure=False)
+
+        await call_service(echo, "PUT", ["x"], {"q": "1"}, {"a": 1}, ALICE)
+
+        self.assertEqual(echo.calls, [("PUT", ["x"], {"q": "1"}, {"a": 1}, ALICE)])
 
 
 if __name__ == "__main__":
